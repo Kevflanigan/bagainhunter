@@ -95,12 +95,12 @@ function getDashboardHtml() {
     '<script>' +
     'const MOCK_DATA = {' +
       'laptop: [' +
-        '{ lot: "1408101", title: "LENOVO IDEAPAD FLEX 5 16IRU8 INTEL I5-1335U RAM 8GB STORAGE 512GB (SEALED)", bid: 45.00, url: "https://www.johnpyeauctions.co.uk/search?q=1408101", img: "https://images.johnpyeauctions.co.uk/lots/medium/1408101_1.jpg", cap: 120 },' +
-        '{ lot: "1408102", title: "HP 250 G7 CORE I5-8265U 8GB RAM 256GB SSD 15.6 INCH WINDOWS 11 LAPTOP", bid: 38.00, url: "https://www.johnpyeauctions.co.uk/search?q=1408102", img: "https://images.johnpyeauctions.co.uk/lots/medium/1408102_1.jpg", cap: 120 }' +
+        '{ lot: "1408101", title: "LENOVO IDEAPAD FLEX 5 16IRU8 INTEL I5-1335U RAM 8GB STORAGE 512GB (SEALED)", bid: 45.00, url: "https://www.johnpyeauctions.co.uk/Search/Result?query=1408101", img: "https://images.johnpyeauctions.co.uk/lots/medium/1408101_1.jpg", cap: 120 },' +
+        '{ lot: "1408102", title: "HP 250 G7 CORE I5-8265U 8GB RAM 256GB SSD 15.6 INCH WINDOWS 11 LAPTOP", bid: 38.00, url: "https://www.johnpyeauctions.co.uk/Search/Result?query=1408102", img: "https://images.johnpyeauctions.co.uk/lots/medium/1408102_1.jpg", cap: 120 }' +
       '],' +
       'tablet: [' +
-        '{ lot: "1408103", title: "APPLE IPAD 10.2 INCH (9TH GEN) 64GB WI-FI - SEALED UNIT", bid: 65.00, url: "https://www.johnpyeauctions.co.uk/search?q=1408103", img: "https://images.johnpyeauctions.co.uk/lots/medium/1408103_1.jpg", cap: 150 },' +
-        '{ lot: "1408104", title: "SAMSUNG GALAXY TAB A9 64GB TABLET WITH WIFI - BOXED", bid: 40.00, url: "https://www.johnpyeauctions.co.uk/search?q=1408104", img: "https://images.johnpyeauctions.co.uk/lots/medium/1408104_1.jpg", cap: 150 }' +
+        '{ lot: "1408103", title: "APPLE IPAD 10.2 INCH (9TH GEN) 64GB WI-FI - SEALED UNIT", bid: 65.00, url: "https://www.johnpyeauctions.co.uk/Search/Result?query=1408103", img: "https://images.johnpyeauctions.co.uk/lots/medium/1408103_1.jpg", cap: 150 },' +
+        '{ lot: "1408104", title: "SAMSUNG GALAXY TAB A9 64GB TABLET WITH WIFI - BOXED", bid: 40.00, url: "https://www.johnpyeauctions.co.uk/Search/Result?query=1408104", img: "https://images.johnpyeauctions.co.uk/lots/medium/1408104_1.jpg", cap: 150 }' +
       ']' +
     '};' +
     'function cleanQuery(title) {' +
@@ -113,15 +113,22 @@ function getDashboardHtml() {
       'const matchTitle = title.match(/\\b(\\d{6,8})\\b/) || title.match(/^(\\d{5,8})\\b/);' +
       'if (matchTitle) return matchTitle[1];' +
       'if (itemEl) {' +
-        'const attr = itemEl.getAttribute("data-lot-number") || itemEl.getAttribute("data-lotid") || itemEl.getAttribute("id");' +
-        'if (attr) {' +
-          'const m = attr.match(/\\d{5,8}/);' +
-          'if (m) return m[0];' +
+        'const attr = itemEl.getAttribute("data-lot-number") || itemEl.getAttribute("data-lotid") || itemEl.getAttribute("id") || "";' +
+        'const m = attr.match(/\\d{5,8}/);' +
+        'if (m) return m[0];' +
+        'const links = itemEl.querySelectorAll("a");' +
+        'for (let a of links) {' +
+          'const href = a.getAttribute("href") || "";' +
+          'const hrefMatch = href.match(/\\b(\\d{6,8})\\b/);' +
+          'if (hrefMatch) return hrefMatch[1];' +
         '}' +
       '}' +
       'return null;' +
     '}' +
     'function buildLotUrl(itemEl, lotNum, title) {' +
+      'if (lotNum) {' +
+        'return "https://www.johnpyeauctions.co.uk/Search/Result?query=" + encodeURIComponent(lotNum);' +
+      '}' +
       'const links = itemEl.querySelectorAll("a");' +
       'for (let a of links) {' +
         'const href = a.getAttribute("href") || "";' +
@@ -129,10 +136,7 @@ function getDashboardHtml() {
           'return href.startsWith("http") ? href : "https://www.johnpyeauctions.co.uk" + href;' +
         '}' +
       '}' +
-      'if (lotNum) {' +
-        'return "https://www.johnpyeauctions.co.uk/search?q=" + encodeURIComponent(lotNum);' +
-      '}' +
-      'return "https://www.johnpyeauctions.co.uk/search?q=" + encodeURIComponent(cleanQuery(title));' +
+      'return "https://www.johnpyeauctions.co.uk/Search/Result?query=" + encodeURIComponent(cleanQuery(title));' +
     '}' +
     'function buildLotImage(itemEl, lotNum) {' +
       'if (lotNum) {' +
@@ -181,6 +185,8 @@ function getDashboardHtml() {
         'let cards = "";' +
         'let count = 0;' +
         'const cap = type === "laptop" ? 120 : 150;' +
+        'const seenLots = new Set();' +
+        'const seenTitles = new Set();' +
         'if (text.includes(\'"blocked":true\') || text.length < 500) {' +
           'MOCK_DATA[type].forEach(item => {' +
             'const hammerFees = item.bid * 1.25 * 1.20;' +
@@ -198,6 +204,11 @@ function getDashboardHtml() {
             'const title = (titleEl.innerText || "").trim();' +
             'if (title.length < 8 || title.toLowerCase().includes("consent")) return;' +
             'const lotNum = extractLotNumber(title, item);' +
+            'if (lotNum && seenLots.has(lotNum)) return;' +
+            'const normalizedTitle = cleanQuery(title).toLowerCase();' +
+            'if (seenTitles.has(normalizedTitle)) return;' +
+            'if (lotNum) seenLots.add(lotNum);' +
+            'seenTitles.add(normalizedTitle);' +
             'const displayLot = lotNum || "PYE-" + Math.floor(100000 + Math.random() * 900000);' +
             'const priceMatch = item.innerText.match(/£\\s*([\\d.]+)/);' +
             'const bid = priceMatch ? parseFloat(priceMatch[1]) : 10.00;' +
@@ -212,7 +223,7 @@ function getDashboardHtml() {
         '}' +
         'const containerId = type + "-listings";' +
         'if (count === 0) {' +
-          'document.getElementById(containerId).innerHTML = `<div class="card empty"><p>🔍 Scan complete. No items found within price cap.</p></div>`;' +
+          'document.getElementById(containerId).innerHTML = `<div class="card empty"><p>🔍 Scan complete. No unique items found within price cap.</p></div>`;' +
         '} else {' +
           'document.getElementById(containerId).innerHTML = cards;' +
         '}' +
