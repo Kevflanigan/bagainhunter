@@ -36,7 +36,7 @@ async function scrapeJohnPye(env) {
       const currentBid = parseFloat(match[3]);
       const totalOutlay = (currentBid * 1.25 * 1.20) + 15.0;
       const titleUpper = title.toUpperCase();
-      const isTargetCpu = /\b(I5-8\d|I5-10\d|I5-11\d|I5-12\d|I5-13\d|I7-8\d|I7-10\d|I7-11\d|RYZEN 3|RYZEN 5|RYZEN 7)\b/i.test(titleUpper);
+     const isTargetCpu = /\b([I1]5[- ]?8\d|[I1]5[- ]?10\d|[I1]5[- ]?11\d|[I1]5[- ]?12\d|[I1]5[- ]?13\d|[I1]7[- ]?8\d|[I1]7[- ]?10\d|[I1]7[- ]?11\d|RYZEN 3|RYZEN 5|RYZEN 7)\b/i.test(titleUpper);
       const isExcludedCpu = /CELERON|PENTIUM|ATOM|N3060|N4020|6200U|32GB/i.test(titleUpper);
       if (isTargetCpu && !isExcludedCpu && totalOutlay <= 420.0) {
         matchedLots.push({
