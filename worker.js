@@ -53,7 +53,7 @@ function getDashboardHtml() {
     '.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(330px, 1fr)); gap: 16px; }' +
     '.card { background: var(--card-bg); backdrop-filter: blur(12px); border-radius: 16px; padding: 16px; border: 1px solid var(--card-border); display: flex; flex-direction: column; justify-content: space-between; }' +
     '.card-head { display: flex; gap: 14px; margin-bottom: 10px; }' +
-    '.thumb { width: 80px; height: 80px; border-radius: 10px; object-fit: cover; background: #0f172a; border: 1px solid rgba(255,255,255,0.1); flex-shrink: 0; }' +
+    '.thumb { width: 85px; height: 85px; border-radius: 10px; object-fit: cover; background: #0f172a; border: 1px solid rgba(255,255,255,0.1); flex-shrink: 0; }' +
     '.meta { flex-grow: 1; overflow: hidden; }' +
     '.brand-tag { display: inline-block; background: #334155; color: #e2e8f0; font-size: 0.65rem; font-weight: 700; text-transform: uppercase; padding: 2px 6px; border-radius: 4px; margin-bottom: 6px; }' +
     '.card-title { font-size: 0.88rem; font-weight: 700; line-height: 1.35; color: #f1f5f9; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }' +
@@ -91,12 +91,12 @@ function getDashboardHtml() {
     '<script>' +
     'const MOCK_DATA = {' +
       'laptop: [' +
-        '{ title: "LENOVO IDEAPAD FLEX 5 16IRU8 INTEL I5-1335U RAM 8GB STORAGE 512GB (SEALED)", bid: 45.00, url: "https://www.johnpyeauctions.co.uk", img: "https://images.unsplash.com/photo-1541807084-5c52b6b3adef?w=300&q=80", cap: 120 },' +
-        '{ title: "HP 250 G7 CORE I5-8265U 8GB RAM 256GB SSD 15.6 INCH WINDOWS 11 LAPTOP", bid: 38.00, url: "https://www.johnpyeauctions.co.uk", img: "https://images.unsplash.com/photo-1588872657578-7efd1f1555ed?w=300&q=80", cap: 120 }' +
+        '{ title: "LENOVO IDEAPAD FLEX 5 16IRU8 INTEL I5-1335U RAM 8GB STORAGE 512GB (SEALED)", bid: 45.00, url: "https://www.johnpyeauctions.co.uk/Browse/C183360492-C217168966/TECH-GAMING-LAPTOPS-MACBOOKS", img: "https://www.johnpyeauctions.co.uk/images/lots/medium/1408101_1.jpg", cap: 120 },' +
+        '{ title: "HP 250 G7 CORE I5-8265U 8GB RAM 256GB SSD 15.6 INCH WINDOWS 11 LAPTOP", bid: 38.00, url: "https://www.johnpyeauctions.co.uk/Browse/C183360492-C217168966/TECH-GAMING-LAPTOPS-MACBOOKS", img: "https://www.johnpyeauctions.co.uk/images/lots/medium/1408102_1.jpg", cap: 120 }' +
       '],' +
       'tablet: [' +
-        '{ title: "APPLE IPAD 10.2 INCH (9TH GEN) 64GB WI-FI - SEALED UNIT", bid: 65.00, url: "https://www.johnpyeauctions.co.uk", img: "https://images.unsplash.com/photo-1544244015-0df4b3ffc6b0?w=300&q=80", cap: 150 },' +
-        '{ title: "SAMSUNG GALAXY TAB A9 64GB TABLET WITH WIFI - BOXED", bid: 40.00, url: "https://www.johnpyeauctions.co.uk", img: "https://images.unsplash.com/photo-1561154464-82e9adf32764?w=300&q=80", cap: 150 }' +
+        '{ title: "APPLE IPAD 10.2 INCH (9TH GEN) 64GB WI-FI - SEALED UNIT", bid: 65.00, url: "https://www.johnpyeauctions.co.uk/Browse/C183360492-C217168951/IPAD-TABLETS", img: "https://www.johnpyeauctions.co.uk/images/lots/medium/1408103_1.jpg", cap: 150 },' +
+        '{ title: "SAMSUNG GALAXY TAB A9 64GB TABLET WITH WIFI - BOXED", bid: 40.00, url: "https://www.johnpyeauctions.co.uk/Browse/C183360492-C217168951/IPAD-TABLETS", img: "https://www.johnpyeauctions.co.uk/images/lots/medium/1408104_1.jpg", cap: 150 }' +
       ']' +
     '};' +
     'function fixUrl(rawHref, title) {' +
@@ -108,6 +108,24 @@ function getDashboardHtml() {
       '} catch(e) {' +
         'return "https://www.johnpyeauctions.co.uk";' +
       '}' +
+    '}' +
+    'function extractLotImage(item) {' +
+      'const img = item.querySelector("img");' +
+      'let src = "";' +
+      'if (img) {' +
+        'src = img.getAttribute("src") || img.getAttribute("data-src") || img.getAttribute("data-original") || "";' +
+      '}' +
+      'if (!src) {' +
+        'const bgEl = item.querySelector("[style*=\'background-image\']");' +
+        'if (bgEl) {' +
+          'const match = bgEl.style.backgroundImage.match(/url\\([\'"]?(.*?)[\'"]?\\)/);' +
+          'if (match) src = match[1];' +
+        '}' +
+      '}' +
+      'if (!src) return "";' +
+      'if (src.startsWith("//")) return "https:" + src;' +
+      'if (src.startsWith("/")) return "https://www.johnpyeauctions.co.uk" + src;' +
+      'return src;' +
     '}' +
     'function parseSpecs(title) {' +
       'const t = title.toUpperCase();' +
@@ -163,11 +181,9 @@ function getDashboardHtml() {
             'const total = hammerFees + 15.0;' +
             'const rawHref = titleEl.getAttribute("href") || "";' +
             'const fullUrl = fixUrl(rawHref, title);' +
-            'const imgEl = item.querySelector("img");' +
-            'let imgSrc = imgEl ? imgEl.getAttribute("src") : "";' +
-            'if (imgSrc && !imgSrc.startsWith("http")) imgSrc = "https://www.johnpyeauctions.co.uk" + imgSrc;' +
+            'let imgSrc = extractLotImage(item);' +
             'if (!imgSrc) {' +
-              'imgSrc = type === "laptop" ? "https://images.unsplash.com/photo-1588872657578-7efd1f1555ed?w=300&q=80" : "https://images.unsplash.com/photo-1561154464-82e9adf32764?w=300&q=80";' +
+              'imgSrc = "https://www.johnpyeauctions.co.uk/images/no-image.jpg";' +
             '}' +
             'if (total <= cap) {' +
               'cards += createCard(title, bid, hammerFees, total, fullUrl, imgSrc, cap, type); count++;' +
@@ -211,7 +227,7 @@ function getDashboardHtml() {
       'return `<div class="card">' +
         '<div>' +
           '<div class="card-head">' +
-            '<img src="${imgSrc}" class="thumb" alt="Item Image" />' +
+            '<img src="${imgSrc}" class="thumb" alt="Actual Lot Photo" onError="this.onerror=null;this.src=\'https://www.johnpyeauctions.co.uk/images/no-image.jpg\';" />' +
             '<div class="meta">' +
               '<span class="brand-tag">${brand}</span>' +
               '<div class="card-title">${title}</div>' +
