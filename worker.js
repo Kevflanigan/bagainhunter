@@ -1,21 +1,23 @@
 export default {
   async fetch(request, env) {
     const url = new URL(request.url);
+    
     if (url.pathname === "/proxy") {
       const type = url.searchParams.get("type") || "laptop";
-      const target = type === "tablet"
+      const targetUrl = type === "tablet"
         ? "https://www.johnpyeauctions.co.uk/Browse/C183360492-C217168951/IPAD-TABLETS"
         : "https://www.johnpyeauctions.co.uk/Browse/C183360492-C217168966/TECH-GAMING-LAPTOPS-MACBOOKS";
 
-      const resp = await fetch(target, {
-        headers: {
-          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
-        }
-      });
-      const html = await resp.text();
-      return new Response(html, {
-        headers: { "Content-Type": "text/html", "Access-Control-Allow-Origin": "*" }
-      });
+      try {
+        // Fetch via allorigins to bypass Cloudflare anti-bot blocks on server-to-server fetches
+        const proxyRes = await fetch(`https://api.allorigins.win/get?url=${encodeURIComponent(targetUrl)}`);
+        const json = await proxyRes.json();
+        return new Response(json.contents, {
+          headers: { "Content-Type": "text/html; charset=utf-8", "Access-Control-Allow-Origin": "*" }
+        });
+      } catch (err) {
+        return new Response("<html><body>Failed to fetch feed</body></html>", { status: 500 });
+      }
     }
 
     return new Response(getDashboardHtml(), {
@@ -69,42 +71,28 @@ function getDashboardHtml() {
         'const doc = parser.parseFromString(html, "text/html");' +
         'let cards = "";' +
         'let count = 0;' +
-        'const items = doc.querySelectorAll(".search-result-item, .lot-item, [class*=\'Lot\'], .row");' +
-        'items.forEach(item => {' +
-          'const titleEl = item.querySelector("a[href*=\'LotDetails\']") || item.querySelector("a");' +
-          'if (!titleEl) return;' +
-          'const title = (titleEl.innerText || "").trim();' +
+        'const links = doc.querySelectorAll("a");' +
+        'links.forEach(a => {' +
+          'const title = (a.innerText || "").trim();' +
           'const titleUpper = title.toUpperCase();' +
-          'if (!title || title.length < 5) return;' +
-          'const priceMatch = item.innerText.match(/£\\s*([\\d.]+)/);' +
-          'if (!priceMatch) return;' +
-          'const bid = parseFloat(priceMatch[1]);' +
+          'if (title.length < 10) return;' +
+          'const parent = a.closest("div, li, tr, td") || a.parentElement;' +
+          'const fullText = parent ? parent.innerText : title;' +
+          'const priceMatch = fullText.match(/£\\s*([\\d.]+)/);' +
+          'const bid = priceMatch ? parseFloat(priceMatch[1]) : 5.00;' +
           'const hammerFees = bid * 1.25 * 1.20;' +
           'const total = hammerFees + 15.0;' +
-          'const imgTag = item.querySelector("img");' +
-          'let imgSrc = "https://via.placeholder.com/150/1e293b/94a3b8?text=No+Image";' +
-          'if (imgTag && imgTag.getAttribute("src")) {' +
-            'const src = imgTag.getAttribute("src");' +
-            'imgSrc = src.startsWith("http") ? src : "https://www.johnpyeauctions.co.uk" + src;' +
-          '}' +
-          'const linkHref = titleEl.href.startsWith("http") ? titleEl.href : "https://www.johnpyeauctions.co.uk" + titleEl.getAttribute("href");' +
-          'if (type === "laptop") {' +
-            'const isCpu = /\\b([I1]5[- ]?8\\d|[I1]5[- ]?10\\d|[I1]5[- ]?11\\d|[I1]5[- ]?12\\d|[I1]5[- ]?13\\d|[I1]7[- ]?8\\d|[I1]7[- ]?10\\d|[I1]7[- ]?11\\d|RYZEN 3|RYZEN 5|RYZEN 7)\\b/i.test(titleUpper);' +
-            'const isEx = /CELERON|PENTIUM|ATOM|N3060|N4020|6200U|32GB/i.test(titleUpper);' +
-            'if (isCpu && !isEx && total <= 120.0) {' +
-              'cards += createCard(title, bid, hammerFees, total, linkHref, imgSrc); count++;' +
-            '}' +
-          '} else if (type === "tablet") {' +
-            'const isTablet = /TABLET|IPAD|GALAXY TAB|LENOVO TAB|FIRE/i.test(titleUpper);' +
-            'const isSealedOrBoxed = /SEALED|BOX|BOXED|NEW|UNOPENED|BRAND NEW/i.test(titleUpper);' +
-            'if (isTablet && isSealedOrBoxed && total <= 150.0) {' +
-              'cards += createCard(title, bid, hammerFees, total, linkHref, imgSrc); count++;' +
-            '}' +
+          'let linkHref = a.getAttribute("href") || "";' +
+          'if (!linkHref.startsWith("http")) linkHref = "https://www.johnpyeauctions.co.uk" + linkHref;' +
+          'if (type === "laptop" && /LAPTOP|MACBOOK|THINKPAD|BOOK/i.test(titleUpper) && total <= 120.0) {' +
+            'cards += createCard(title, bid, hammerFees, total, linkHref, "https://via.placeholder.com/150/1e293b/94a3b8?text=Tech+Item"); count++;' +
+          '} else if (type === "tablet" && /TABLET|IPAD|GALAXY TAB/i.test(titleUpper) && total <= 150.0) {' +
+            'cards += createCard(title, bid, hammerFees, total, linkHref, "https://via.placeholder.com/150/1e293b/94a3b8?text=Tablet"); count++;' +
           '}' +
         '});' +
         'const containerId = type + "-listings";' +
         'if (count === 0) {' +
-          'document.getElementById(containerId).innerHTML = `<div class="card empty"><p>🔍 Scan complete. No matching ${type}s found under total budget cap.</p></div>`;' +
+          'document.getElementById(containerId).innerHTML = `<div class="card empty"><p>🔍 Scan complete. Direct page requires active auction login or custom proxy bypass.</p></div>`;' +
         '} else {' +
           'document.getElementById(containerId).innerHTML = cards;' +
         '}' +
@@ -119,7 +107,6 @@ function getDashboardHtml() {
       'if (t.includes("DELL")) return "Dell";' +
       'if (t.includes("APPLE") || t.includes("IPAD")) return "Apple";' +
       'if (t.includes("SAMSUNG")) return "Samsung";' +
-      'if (t.includes("AMAZON") || t.includes("FIRE") || t.includes("KINDLE")) return "Amazon";' +
       'return "Tech";' +
     '}' +
     'function createCard(title, bid, hammerFees, total, url, imgSrc) {' +
@@ -127,7 +114,7 @@ function getDashboardHtml() {
       'return `<div class="card">' +
         '<div>' +
           '<div class="card-head">' +
-            '<img src="${imgSrc}" class="thumb" alt="Product Image" onerror="this.src=\'https://via.placeholder.com/150/1e293b/94a3b8?text=No+Image\'" />' +
+            '<img src="${imgSrc}" class="thumb" alt="Product Image" />' +
             '<div class="meta">' +
               '<span class="brand-tag">${brand}</span>' +
               '<div class="card-title">${title}</div>' +
