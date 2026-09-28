@@ -11,7 +11,7 @@ export default {
       try {
         const res = await fetch(targetUrl, {
           headers: {
-            "User-Agent": "Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Mobile/15E148 Safari/604.1",
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36",
             "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8"
           }
         });
@@ -53,7 +53,9 @@ function getDashboardHtml() {
     '.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(330px, 1fr)); gap: 16px; }' +
     '.card { background: var(--card-bg); backdrop-filter: blur(12px); border-radius: 16px; padding: 16px; border: 1px solid var(--card-border); display: flex; flex-direction: column; justify-content: space-between; }' +
     '.card-head { display: flex; gap: 14px; margin-bottom: 10px; }' +
-    '.thumb { width: 85px; height: 85px; border-radius: 10px; object-fit: cover; background: #0f172a; border: 1px solid rgba(255,255,255,0.1); flex-shrink: 0; }' +
+    '.thumb-wrapper { position: relative; width: 90px; height: 90px; flex-shrink: 0; }' +
+    '.thumb { width: 100%; height: 100%; border-radius: 10px; object-fit: cover; background: #0f172a; border: 1px solid rgba(255,255,255,0.1); }' +
+    '.thumb-lot-badge { position: absolute; bottom: 4px; left: 4px; right: 4px; background: rgba(15, 23, 42, 0.85); color: #38bdf8; font-size: 0.58rem; font-weight: 800; text-align: center; padding: 2px 0; border-radius: 4px; border: 1px solid rgba(56, 189, 248, 0.4); backdrop-filter: blur(4px); }' +
     '.meta { flex-grow: 1; overflow: hidden; }' +
     '.meta-tags { display: flex; gap: 6px; align-items: center; margin-bottom: 6px; }' +
     '.lot-tag { display: inline-block; background: rgba(56, 189, 248, 0.2); color: #38bdf8; font-size: 0.65rem; font-weight: 800; padding: 2px 6px; border-radius: 4px; border: 1px solid rgba(56, 189, 248, 0.3); }' +
@@ -93,16 +95,16 @@ function getDashboardHtml() {
     '<script>' +
     'const MOCK_DATA = {' +
       'laptop: [' +
-        '{ lot: "1408101", title: "LENOVO IDEAPAD FLEX 5 16IRU8 INTEL I5-1335U RAM 8GB STORAGE 512GB (SEALED)", bid: 45.00, url: "https://www.johnpyeauctions.co.uk/Event/LotDetails/1408101", img: "https://www.johnpyeauctions.co.uk/images/lots/medium/1408101_1.jpg", cap: 120 },' +
-        '{ lot: "1408102", title: "HP 250 G7 CORE I5-8265U 8GB RAM 256GB SSD 15.6 INCH WINDOWS 11 LAPTOP", bid: 38.00, url: "https://www.johnpyeauctions.co.uk/Event/LotDetails/1408102", img: "https://www.johnpyeauctions.co.uk/images/lots/medium/1408102_1.jpg", cap: 120 }' +
+        '{ lot: "1408101", title: "LENOVO IDEAPAD FLEX 5 16IRU8 INTEL I5-1335U RAM 8GB STORAGE 512GB (SEALED)", bid: 45.00, url: "https://www.johnpyeauctions.co.uk/Event/LotDetails/567807142/LENOVO-IDEAPAD-FLEX-5", img: "https://www.johnpyeauctions.co.uk/images/lots/medium/1408101_1.jpg", cap: 120 },' +
+        '{ lot: "1408102", title: "HP 250 G7 CORE I5-8265U 8GB RAM 256GB SSD 15.6 INCH WINDOWS 11 LAPTOP", bid: 38.00, url: "https://www.johnpyeauctions.co.uk/Event/LotDetails/567807143/HP-250-G7-LAPTOP", img: "https://www.johnpyeauctions.co.uk/images/lots/medium/1408102_1.jpg", cap: 120 }' +
       '],' +
       'tablet: [' +
-        '{ lot: "1408103", title: "APPLE IPAD 10.2 INCH (9TH GEN) 64GB WI-FI - SEALED UNIT", bid: 65.00, url: "https://www.johnpyeauctions.co.uk/Event/LotDetails/1408103", img: "https://www.johnpyeauctions.co.uk/images/lots/medium/1408103_1.jpg", cap: 150 },' +
-        '{ lot: "1408104", title: "SAMSUNG GALAXY TAB A9 64GB TABLET WITH WIFI - BOXED", bid: 40.00, url: "https://www.johnpyeauctions.co.uk/Event/LotDetails/1408104", img: "https://www.johnpyeauctions.co.uk/images/lots/medium/1408104_1.jpg", cap: 150 }' +
+        '{ lot: "1408103", title: "APPLE IPAD 10.2 INCH (9TH GEN) 64GB WI-FI - SEALED UNIT", bid: 65.00, url: "https://www.johnpyeauctions.co.uk/Event/LotDetails/567807144/APPLE-IPAD-9TH-GEN", img: "https://www.johnpyeauctions.co.uk/images/lots/medium/1408103_1.jpg", cap: 150 },' +
+        '{ lot: "1408104", title: "SAMSUNG GALAXY TAB A9 64GB TABLET WITH WIFI - BOXED", bid: 40.00, url: "https://www.johnpyeauctions.co.uk/Event/LotDetails/567807145/SAMSUNG-GALAXY-TAB-A9", img: "https://www.johnpyeauctions.co.uk/images/lots/medium/1408104_1.jpg", cap: 150 }' +
       ']' +
     '};' +
     'function extractLotNumber(title, itemEl, rawHref) {' +
-      'const matchHref = rawHref ? rawHref.match(/\\b(\\d{6,8})\\b/) : null;' +
+      'const matchHref = rawHref ? rawHref.match(/LotDetails\\/(\\d+)/i) || rawHref.match(/\\b(\\d{6,9})\\b/) : null;' +
       'if (matchHref) return matchHref[1];' +
       'const matchTitle = title.match(/\\b(?:LOT|REF|ID)\\s*[:#]?\\s*(\\d{5,8})\\b/i) || title.match(/^(\\d{5,8})\\b/);' +
       'if (matchTitle) return matchTitle[1];' +
@@ -113,13 +115,12 @@ function getDashboardHtml() {
       'return "PYE-" + Math.floor(100000 + Math.random() * 900000);' +
     '}' +
     'function fixUrl(rawHref, lotNum, title) {' +
-      'if (rawHref && rawHref !== "#" && rawHref.trim() !== "") {' +
-        'try {' +
-          'return new URL(rawHref, "https://www.johnpyeauctions.co.uk").href;' +
-        '} catch(e) {}' +
+      'if (rawHref && rawHref.includes("/Event/LotDetails/")) {' +
+        'return rawHref.startsWith("http") ? rawHref : "https://www.johnpyeauctions.co.uk" + rawHref;' +
       '}' +
-      'if (lotNum && lotNum.length >= 5 && !lotNum.startsWith("PYE-")) {' +
-        'return "https://www.johnpyeauctions.co.uk/Event/LotDetails/" + lotNum;' +
+      'if (lotNum && !lotNum.startsWith("PYE-")) {' +
+        'const slug = title.replace(/[^a-zA-Z0-9]/g, "-").replace(/-+/g, "-");' +
+        'return "https://www.johnpyeauctions.co.uk/Event/LotDetails/" + lotNum + "/" + slug;' +
       '}' +
       'return "https://www.johnpyeauctions.co.uk/search?q=" + encodeURIComponent(cleanQuery(title));' +
     '}' +
@@ -127,7 +128,7 @@ function getDashboardHtml() {
       'const img = item.querySelector("img");' +
       'let src = "";' +
       'if (img) {' +
-        'src = img.getAttribute("src") || img.getAttribute("data-src") || img.getAttribute("data-original") || "";' +
+        'src = img.getAttribute("src") || img.getAttribute("data-src") || img.getAttribute("data-original") || img.getAttribute("data-full-src") || "";' +
       '}' +
       'if (!src) {' +
         'const bgEl = item.querySelector("[style*=\'background-image\']");' +
@@ -185,7 +186,7 @@ function getDashboardHtml() {
           'const doc = parser.parseFromString(text, "text/html");' +
           'const items = doc.querySelectorAll(".search-result-item, .lot-item, [class*=\'Lot\'], .row, tr");' +
           'items.forEach(item => {' +
-            'const titleEl = item.querySelector("a");' +
+            'const titleEl = item.querySelector("a[href*=\'LotDetails\']") || item.querySelector("a");' +
             'if (!titleEl) return;' +
             'const title = (titleEl.innerText || "").trim();' +
             'if (title.length < 8) return;' +
@@ -198,7 +199,7 @@ function getDashboardHtml() {
             'const fullUrl = fixUrl(rawHref, lotNum, title);' +
             'let imgSrc = extractLotImage(item);' +
             'if (!imgSrc) {' +
-              'imgSrc = "https://www.johnpyeauctions.co.uk/images/no-image.jpg";' +
+              'imgSrc = "https://www.johnpyeauctions.co.uk/images/lots/medium/" + lotNum + "_1.jpg";' +
             '}' +
             'if (total <= cap) {' +
               'cards += createCard(lotNum, title, bid, hammerFees, total, fullUrl, imgSrc, cap, type); count++;' +
@@ -242,7 +243,10 @@ function getDashboardHtml() {
       'return `<div class="card">' +
         '<div>' +
           '<div class="card-head">' +
-            '<img src="${imgSrc}" class="thumb" alt="Actual Lot Photo" onError="this.onerror=null;this.src=\'https://www.johnpyeauctions.co.uk/images/no-image.jpg\';" />' +
+            '<div class="thumb-wrapper">' +
+              '<img src="${imgSrc}" class="thumb" alt="Actual Lot Photo" onError="this.onerror=null;this.src=\'https://www.johnpyeauctions.co.uk/images/no-image.jpg\';" />' +
+              '<div class="thumb-lot-badge">#${lotNum}</div>' +
+            '</div>' +
             '<div class="meta">' +
               '<div class="meta-tags">' +
                 '<span class="lot-tag">LOT #${lotNum}</span>' +
@@ -282,3 +286,4 @@ function getDashboardHtml() {
     '</script>' +
     '</body></html>';
 }
+
