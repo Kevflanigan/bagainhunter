@@ -1,5 +1,5 @@
 async function scrapeJohnPye(env) {
-  const targetUrl = "https://www.johnpyeauctions.co.uk/Browse/C183360492-C217168966/TECH-GAMING-LAPTOPS-MACBOOKS";
+  const targetUrl = "https://www.johnpyeauctions.co.uk/Event/LotDetails?searchString=LAPTOP";
   try {
     const response = await fetch(targetUrl, {
       headers: {
