@@ -55,7 +55,9 @@ function getDashboardHtml() {
     '.card-head { display: flex; gap: 14px; margin-bottom: 10px; }' +
     '.thumb { width: 85px; height: 85px; border-radius: 10px; object-fit: cover; background: #0f172a; border: 1px solid rgba(255,255,255,0.1); flex-shrink: 0; }' +
     '.meta { flex-grow: 1; overflow: hidden; }' +
-    '.brand-tag { display: inline-block; background: #334155; color: #e2e8f0; font-size: 0.65rem; font-weight: 700; text-transform: uppercase; padding: 2px 6px; border-radius: 4px; margin-bottom: 6px; }' +
+    '.meta-tags { display: flex; gap: 6px; align-items: center; margin-bottom: 6px; }' +
+    '.lot-tag { display: inline-block; background: rgba(56, 189, 248, 0.2); color: #38bdf8; font-size: 0.65rem; font-weight: 800; padding: 2px 6px; border-radius: 4px; border: 1px solid rgba(56, 189, 248, 0.3); }' +
+    '.brand-tag { display: inline-block; background: #334155; color: #e2e8f0; font-size: 0.65rem; font-weight: 700; text-transform: uppercase; padding: 2px 6px; border-radius: 4px; }' +
     '.card-title { font-size: 0.88rem; font-weight: 700; line-height: 1.35; color: #f1f5f9; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }' +
     '.spec-bar { display: flex; flex-wrap: wrap; gap: 4px; margin: 10px 0; }' +
     '.spec-chip { font-size: 0.68rem; background: rgba(51, 65, 85, 0.8); border: 1px solid rgba(255, 255, 255, 0.08); color: #cbd5e1; padding: 3px 8px; border-radius: 6px; font-weight: 600; }' +
@@ -91,23 +93,35 @@ function getDashboardHtml() {
     '<script>' +
     'const MOCK_DATA = {' +
       'laptop: [' +
-        '{ title: "LENOVO IDEAPAD FLEX 5 16IRU8 INTEL I5-1335U RAM 8GB STORAGE 512GB (SEALED)", bid: 45.00, url: "https://www.johnpyeauctions.co.uk/Browse/C183360492-C217168966/TECH-GAMING-LAPTOPS-MACBOOKS", img: "https://www.johnpyeauctions.co.uk/images/lots/medium/1408101_1.jpg", cap: 120 },' +
-        '{ title: "HP 250 G7 CORE I5-8265U 8GB RAM 256GB SSD 15.6 INCH WINDOWS 11 LAPTOP", bid: 38.00, url: "https://www.johnpyeauctions.co.uk/Browse/C183360492-C217168966/TECH-GAMING-LAPTOPS-MACBOOKS", img: "https://www.johnpyeauctions.co.uk/images/lots/medium/1408102_1.jpg", cap: 120 }' +
+        '{ lot: "1408101", title: "LENOVO IDEAPAD FLEX 5 16IRU8 INTEL I5-1335U RAM 8GB STORAGE 512GB (SEALED)", bid: 45.00, url: "https://www.johnpyeauctions.co.uk/Event/LotDetails/1408101", img: "https://www.johnpyeauctions.co.uk/images/lots/medium/1408101_1.jpg", cap: 120 },' +
+        '{ lot: "1408102", title: "HP 250 G7 CORE I5-8265U 8GB RAM 256GB SSD 15.6 INCH WINDOWS 11 LAPTOP", bid: 38.00, url: "https://www.johnpyeauctions.co.uk/Event/LotDetails/1408102", img: "https://www.johnpyeauctions.co.uk/images/lots/medium/1408102_1.jpg", cap: 120 }' +
       '],' +
       'tablet: [' +
-        '{ title: "APPLE IPAD 10.2 INCH (9TH GEN) 64GB WI-FI - SEALED UNIT", bid: 65.00, url: "https://www.johnpyeauctions.co.uk/Browse/C183360492-C217168951/IPAD-TABLETS", img: "https://www.johnpyeauctions.co.uk/images/lots/medium/1408103_1.jpg", cap: 150 },' +
-        '{ title: "SAMSUNG GALAXY TAB A9 64GB TABLET WITH WIFI - BOXED", bid: 40.00, url: "https://www.johnpyeauctions.co.uk/Browse/C183360492-C217168951/IPAD-TABLETS", img: "https://www.johnpyeauctions.co.uk/images/lots/medium/1408104_1.jpg", cap: 150 }' +
+        '{ lot: "1408103", title: "APPLE IPAD 10.2 INCH (9TH GEN) 64GB WI-FI - SEALED UNIT", bid: 65.00, url: "https://www.johnpyeauctions.co.uk/Event/LotDetails/1408103", img: "https://www.johnpyeauctions.co.uk/images/lots/medium/1408103_1.jpg", cap: 150 },' +
+        '{ lot: "1408104", title: "SAMSUNG GALAXY TAB A9 64GB TABLET WITH WIFI - BOXED", bid: 40.00, url: "https://www.johnpyeauctions.co.uk/Event/LotDetails/1408104", img: "https://www.johnpyeauctions.co.uk/images/lots/medium/1408104_1.jpg", cap: 150 }' +
       ']' +
     '};' +
-    'function fixUrl(rawHref, title) {' +
-      'if (!rawHref || rawHref === "#" || rawHref.trim() === "") {' +
-        'return "https://www.johnpyeauctions.co.uk/search?q=" + encodeURIComponent(cleanQuery(title));' +
+    'function extractLotNumber(title, itemEl, rawHref) {' +
+      'const matchHref = rawHref ? rawHref.match(/\\b(\\d{6,8})\\b/) : null;' +
+      'if (matchHref) return matchHref[1];' +
+      'const matchTitle = title.match(/\\b(?:LOT|REF|ID)\\s*[:#]?\\s*(\\d{5,8})\\b/i) || title.match(/^(\\d{5,8})\\b/);' +
+      'if (matchTitle) return matchTitle[1];' +
+      'if (itemEl) {' +
+        'const lotAttr = itemEl.getAttribute("data-lot-id") || itemEl.getAttribute("data-lot-number");' +
+        'if (lotAttr) return lotAttr;' +
       '}' +
-      'try {' +
-        'return new URL(rawHref, "https://www.johnpyeauctions.co.uk").href;' +
-      '} catch(e) {' +
-        'return "https://www.johnpyeauctions.co.uk";' +
+      'return "PYE-" + Math.floor(100000 + Math.random() * 900000);' +
+    '}' +
+    'function fixUrl(rawHref, lotNum, title) {' +
+      'if (rawHref && rawHref !== "#" && rawHref.trim() !== "") {' +
+        'try {' +
+          'return new URL(rawHref, "https://www.johnpyeauctions.co.uk").href;' +
+        '} catch(e) {}' +
       '}' +
+      'if (lotNum && lotNum.length >= 5 && !lotNum.startsWith("PYE-")) {' +
+        'return "https://www.johnpyeauctions.co.uk/Event/LotDetails/" + lotNum;' +
+      '}' +
+      'return "https://www.johnpyeauctions.co.uk/search?q=" + encodeURIComponent(cleanQuery(title));' +
     '}' +
     'function extractLotImage(item) {' +
       'const img = item.querySelector("img");' +
@@ -163,7 +177,7 @@ function getDashboardHtml() {
           'MOCK_DATA[type].forEach(item => {' +
             'const hammerFees = item.bid * 1.25 * 1.20;' +
             'const total = hammerFees + 15.0;' +
-            'cards += createCard(item.title, item.bid, hammerFees, total, item.url, item.img, cap, type);' +
+            'cards += createCard(item.lot, item.title, item.bid, hammerFees, total, item.url, item.img, cap, type);' +
             'count++;' +
           '});' +
         '} else {' +
@@ -175,18 +189,19 @@ function getDashboardHtml() {
             'if (!titleEl) return;' +
             'const title = (titleEl.innerText || "").trim();' +
             'if (title.length < 8) return;' +
+            'const rawHref = titleEl.getAttribute("href") || "";' +
+            'const lotNum = extractLotNumber(title, item, rawHref);' +
             'const priceMatch = item.innerText.match(/£\\s*([\\d.]+)/);' +
             'const bid = priceMatch ? parseFloat(priceMatch[1]) : 10.00;' +
             'const hammerFees = bid * 1.25 * 1.20;' +
             'const total = hammerFees + 15.0;' +
-            'const rawHref = titleEl.getAttribute("href") || "";' +
-            'const fullUrl = fixUrl(rawHref, title);' +
+            'const fullUrl = fixUrl(rawHref, lotNum, title);' +
             'let imgSrc = extractLotImage(item);' +
             'if (!imgSrc) {' +
               'imgSrc = "https://www.johnpyeauctions.co.uk/images/no-image.jpg";' +
             '}' +
             'if (total <= cap) {' +
-              'cards += createCard(title, bid, hammerFees, total, fullUrl, imgSrc, cap, type); count++;' +
+              'cards += createCard(lotNum, title, bid, hammerFees, total, fullUrl, imgSrc, cap, type); count++;' +
             '}' +
           '});' +
         '}' +
@@ -215,7 +230,7 @@ function getDashboardHtml() {
       'if (t.includes("SAMSUNG")) return "Samsung";' +
       'return "Tech";' +
     '}' +
-    'function createCard(title, bid, hammerFees, total, url, imgSrc, maxBudgetCap, type) {' +
+    'function createCard(lotNum, title, bid, hammerFees, total, url, imgSrc, maxBudgetCap, type) {' +
       'const brand = detectBrand(title);' +
       'const cleanTitle = cleanQuery(title);' +
       'const specs = parseSpecs(title);' +
@@ -229,7 +244,10 @@ function getDashboardHtml() {
           '<div class="card-head">' +
             '<img src="${imgSrc}" class="thumb" alt="Actual Lot Photo" onError="this.onerror=null;this.src=\'https://www.johnpyeauctions.co.uk/images/no-image.jpg\';" />' +
             '<div class="meta">' +
-              '<span class="brand-tag">${brand}</span>' +
+              '<div class="meta-tags">' +
+                '<span class="lot-tag">LOT #${lotNum}</span>' +
+                '<span class="brand-tag">${brand}</span>' +
+              '</div>' +
               '<div class="card-title">${title}</div>' +
             '</div>' +
           '</div>' +
@@ -251,7 +269,7 @@ function getDashboardHtml() {
           '</div>' +
         '</div>' +
         '<div class="actions">' +
-          '<a href="${url}" target="_blank" rel="noopener noreferrer" class="btn btn-pye">View Lot on John Pye &rarr;</a>' +
+          '<a href="${url}" target="_blank" rel="noopener noreferrer" class="btn btn-pye">View Lot #${lotNum} on John Pye &rarr;</a>' +
           '<div class="btn-group">' +
             '<a href="${ebayUrl}" target="_blank" rel="noopener noreferrer" class="btn btn-ebay">eBay Sold Comps ↗</a>' +
             '<a href="${googleUrl}" target="_blank" rel="noopener noreferrer" class="btn btn-google">Google Retail ↗</a>' +
@@ -264,4 +282,3 @@ function getDashboardHtml() {
     '</script>' +
     '</body></html>';
 }
-
