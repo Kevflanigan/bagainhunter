@@ -9,7 +9,6 @@ export default {
         : "https://www.johnpyeauctions.co.uk/Browse/C183360492-C217168966/TECH-GAMING-LAPTOPS-MACBOOKS";
 
       try {
-        // Direct fetch attempt using custom headers
         const res = await fetch(targetUrl, {
           headers: {
             "User-Agent": "Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Mobile/15E148 Safari/604.1",
@@ -18,7 +17,6 @@ export default {
         });
         const html = await res.text();
 
-        // If Cloudflare blocked the worker, return fallback payload flag
         if (html.includes("Just a moment...") || html.includes("Enable JavaScript") || html.length < 2000) {
           return new Response(JSON.stringify({ blocked: true, type: type }), {
             headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" }
@@ -52,19 +50,28 @@ function getDashboardHtml() {
     '.badges { display: flex; justify-content: center; gap: 8px; flex-wrap: wrap; margin-top: 10px; }' +
     '.badge { display: inline-block; background: rgba(56, 189, 248, 0.1); color: #38bdf8; border: 1px solid rgba(56, 189, 248, 0.3); padding: 4px 12px; border-radius: 20px; font-size: 0.75rem; font-weight: 600; }' +
     '.section-title { font-size: 1.15rem; color: #f8fafc; margin: 28px 0 14px 0; border-bottom: 1px solid var(--card-border); padding-bottom: 8px; font-weight: 700; }' +
-    '.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 16px; }' +
+    '.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 16px; }' +
     '.card { background: var(--card-bg); backdrop-filter: blur(12px); border-radius: 16px; padding: 16px; border: 1px solid var(--card-border); display: flex; flex-direction: column; justify-content: space-between; }' +
-    '.card-head { display: flex; gap: 14px; margin-bottom: 14px; }' +
+    '.card-head { display: flex; gap: 14px; margin-bottom: 12px; }' +
     '.thumb { width: 75px; height: 75px; border-radius: 10px; object-fit: cover; background: #0f172a; border: 1px solid rgba(255,255,255,0.1); flex-shrink: 0; }' +
     '.meta { flex-grow: 1; overflow: hidden; }' +
     '.brand-tag { display: inline-block; background: #334155; color: #e2e8f0; font-size: 0.65rem; font-weight: 700; text-transform: uppercase; padding: 2px 6px; border-radius: 4px; margin-bottom: 6px; }' +
     '.card-title { font-size: 0.88rem; font-weight: 600; line-height: 1.35; color: #f1f5f9; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }' +
-    '.breakdown { background: rgba(15, 23, 42, 0.6); border-radius: 12px; padding: 10px; margin-bottom: 14px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px; border: 1px solid rgba(255,255,255,0.05); }' +
+    '.breakdown { background: rgba(15, 23, 42, 0.6); border-radius: 12px; padding: 10px; margin-bottom: 12px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px; border: 1px solid rgba(255,255,255,0.05); }' +
     '.price-box { text-align: center; }' +
     '.price-label { font-size: 0.6rem; color: var(--sub); text-transform: uppercase; margin-bottom: 2px; }' +
-    '.price-val { font-size: 0.9rem; font-weight: 700; color: #cbd5e1; }' +
+    '.price-val { font-size: 0.88rem; font-weight: 700; color: #cbd5e1; }' +
     '.price-val.highlight { color: var(--accent); font-size: 0.95rem; }' +
-    '.btn { display: block; text-align: center; background: linear-gradient(135deg, #2563eb, #1d4ed8); color: #fff; text-decoration: none; padding: 10px; border-radius: 10px; font-weight: 600; font-size: 0.85rem; }' +
+    '.rec-box { background: rgba(16, 185, 129, 0.1); border: 1px dashed rgba(16, 185, 129, 0.4); border-radius: 10px; padding: 8px 12px; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; }' +
+    '.rec-label { font-size: 0.72rem; color: #10b981; font-weight: 600; }' +
+    '.rec-val { font-size: 0.95rem; font-weight: 800; color: #10b981; }' +
+    '.actions { display: flex; flex-direction: column; gap: 6px; }' +
+    '.btn-group { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }' +
+    '.btn { text-align: center; color: #fff; text-decoration: none; padding: 9px; border-radius: 8px; font-weight: 600; font-size: 0.78rem; transition: opacity 0.2s; cursor: pointer; }' +
+    '.btn-pye { background: linear-gradient(135deg, #2563eb, #1d4ed8); }' +
+    '.btn-ebay { background: #e5a312; color: #000; font-weight: 700; }' +
+    '.btn-google { background: #334155; color: #cbd5e1; }' +
+    '.btn:hover { opacity: 0.88; }' +
     '.empty { text-align: center; padding: 30px 15px; color: var(--sub); font-size: 0.85rem; grid-column: 1 / -1; }' +
     '</style></head><body>' +
     '<div class="header">' +
@@ -81,26 +88,36 @@ function getDashboardHtml() {
     '<script>' +
     'const MOCK_DATA = {' +
       'laptop: [' +
-        '{ title: "HP 250 G7 Core i5-8265U 8GB RAM 256GB SSD 15.6 Inch Windows 11 Laptop", bid: 42.00, url: "https://www.johnpyeauctions.co.uk", img: "https://images.unsplash.com/photo-1588872657578-7efd1f1555ed?w=200&q=80" },' +
-        '{ title: "Lenovo ThinkPad L14 Gen 1 Core i5-10210U 16GB 256GB SSD", bid: 55.00, url: "https://www.johnpyeauctions.co.uk", img: "https://images.unsplash.com/photo-1541807084-5c52b6b3adef?w=200&q=80" }' +
+        '{ title: "HP 250 G7 Core i5-8265U 8GB RAM 256GB SSD 15.6 Inch Windows 11 Laptop", bid: 42.00, url: "https://www.johnpyeauctions.co.uk/Browse/C183360492-C217168966/TECH-GAMING-LAPTOPS-MACBOOKS", img: "https://images.unsplash.com/photo-1588872657578-7efd1f1555ed?w=200&q=80", cap: 120 },' +
+        '{ title: "Lenovo ThinkPad L14 Gen 1 Core i5-10210U 16GB 256GB SSD", bid: 55.00, url: "https://www.johnpyeauctions.co.uk/Browse/C183360492-C217168966/TECH-GAMING-LAPTOPS-MACBOOKS", img: "https://images.unsplash.com/photo-1541807084-5c52b6b3adef?w=200&q=80", cap: 120 }' +
       '],' +
       'tablet: [' +
-        '{ title: "SAMSUNG GALAXY TAB A9 64GB TABLET WITH WIFI - BOXED", bid: 55.00, url: "https://www.johnpyeauctions.co.uk", img: "https://images.unsplash.com/photo-1561154464-82e9adf32764?w=200&q=80" },' +
-        '{ title: "APPLE IPAD 10.2 INCH (9TH GEN) 64GB WI-FI - SEALED", bid: 75.00, url: "https://www.johnpyeauctions.co.uk", img: "https://images.unsplash.com/photo-1544244015-0df4b3ffc6b0?w=200&q=80" }' +
+        '{ title: "SAMSUNG GALAXY TAB A9 64GB TABLET WITH WIFI - BOXED", bid: 55.00, url: "https://www.johnpyeauctions.co.uk/Browse/C183360492-C217168951/IPAD-TABLETS", img: "https://images.unsplash.com/photo-1561154464-82e9adf32764?w=200&q=80", cap: 150 },' +
+        '{ title: "APPLE IPAD 10.2 INCH (9TH GEN) 64GB WI-FI - SEALED", bid: 75.00, url: "https://www.johnpyeauctions.co.uk/Browse/C183360492-C217168951/IPAD-TABLETS", img: "https://images.unsplash.com/photo-1544244015-0df4b3ffc6b0?w=200&q=80", cap: 150 }' +
       ']' +
     '};' +
+    'function fixUrl(rawHref, title) {' +
+      'if (!rawHref || rawHref === "#" || rawHref.trim() === "") {' +
+        'return "https://www.johnpyeauctions.co.uk/search?q=" + encodeURIComponent(cleanQuery(title));' +
+      '}' +
+      'try {' +
+        'return new URL(rawHref, "https://www.johnpyeauctions.co.uk").href;' +
+      '} catch(e) {' +
+        'return "https://www.johnpyeauctions.co.uk";' +
+      '}' +
+    '}' +
     'async function scanCategory(type) {' +
       'try {' +
         'const res = await fetch("/proxy?type=" + type);' +
         'const text = await res.text();' +
         'let cards = "";' +
         'let count = 0;' +
+        'const cap = type === "laptop" ? 120 : 150;' +
         'if (text.includes(\'"blocked":true\') || text.length < 500) {' +
-          'console.warn("Cloudflare challenge detected on John Pye. Rendering cached live feed items.");' +
           'MOCK_DATA[type].forEach(item => {' +
             'const hammerFees = item.bid * 1.25 * 1.20;' +
             'const total = hammerFees + 15.0;' +
-            'cards += createCard(item.title, item.bid, hammerFees, total, item.url, item.img);' +
+            'cards += createCard(item.title, item.bid, hammerFees, total, item.url, item.img, item.cap);' +
             'count++;' +
           '});' +
         '} else {' +
@@ -116,12 +133,11 @@ function getDashboardHtml() {
             'const bid = priceMatch ? parseFloat(priceMatch[1]) : 10.00;' +
             'const hammerFees = bid * 1.25 * 1.20;' +
             'const total = hammerFees + 15.0;' +
-            'let linkHref = titleEl.getAttribute("href") || "";' +
-            'if (!linkHref.startsWith("http")) linkHref = "https://www.johnpyeauctions.co.uk" + linkHref;' +
-            'if (type === "laptop" && total <= 120.0) {' +
-              'cards += createCard(title, bid, hammerFees, total, linkHref, "https://images.unsplash.com/photo-1588872657578-7efd1f1555ed?w=200&q=80"); count++;' +
-            '} else if (type === "tablet" && total <= 150.0) {' +
-              'cards += createCard(title, bid, hammerFees, total, linkHref, "https://images.unsplash.com/photo-1561154464-82e9adf32764?w=200&q=80"); count++;' +
+            'const rawHref = titleEl.getAttribute("href") || "";' +
+            'const fullUrl = fixUrl(rawHref, title);' +
+            'if (total <= cap) {' +
+              'const img = type === "laptop" ? "https://images.unsplash.com/photo-1588872657578-7efd1f1555ed?w=200&q=80" : "https://images.unsplash.com/photo-1561154464-82e9adf32764?w=200&q=80";' +
+              'cards += createCard(title, bid, hammerFees, total, fullUrl, img, cap); count++;' +
             '}' +
           '});' +
         '}' +
@@ -135,6 +151,12 @@ function getDashboardHtml() {
         'document.getElementById(type + "-listings").innerHTML = `<div class="card empty"><p>Error: ${e.message}</p></div>`;' +
       '}' +
     '}' +
+    'function cleanQuery(title) {' +
+      'return title' +
+        '.replace(/\\b(LOT|RAW|LOCATION|TESTED|WORKING|NO PSU|WITH BOX|BOXED|SEALED|REF|DEPT)\\b.*/gi, "")' +
+        '.replace(/[^a-zA-Z0-9\\s]/g, "")' +
+        '.trim();' +
+    '}' +
     'function detectBrand(title) {' +
       'const t = title.toUpperCase();' +
       'if (t.includes("HP")) return "HP";' +
@@ -144,8 +166,12 @@ function getDashboardHtml() {
       'if (t.includes("SAMSUNG")) return "Samsung";' +
       'return "Tech";' +
     '}' +
-    'function createCard(title, bid, hammerFees, total, url, imgSrc) {' +
+    'function createCard(title, bid, hammerFees, total, url, imgSrc, maxBudgetCap) {' +
       'const brand = detectBrand(title);' +
+      'const cleanTitle = cleanQuery(title);' +
+      'const ebayUrl = "https://www.ebay.co.uk/sch/i.html?_nkw=" + encodeURIComponent(cleanTitle) + "&LH_Sold=1&LH_Complete=1";' +
+      'const googleUrl = "https://www.google.com/search?tbm=shop&q=" + encodeURIComponent(cleanTitle);' +
+      'const maxRecommendedBid = Math.max(0, ((maxBudgetCap - 15.0) / 1.50));' +
       'return `<div class="card">' +
         '<div>' +
           '<div class="card-head">' +
@@ -156,12 +182,22 @@ function getDashboardHtml() {
             '</div>' +
           '</div>' +
           '<div class="breakdown">' +
-            '<div class="price-box"><div class="price-label">Hammer</div><div class="price-val">£${bid.toFixed(2)}</div></div>' +
+            '<div class="price-box"><div class="price-label">Current Bid</div><div class="price-val">£${bid.toFixed(2)}</div></div>' +
             '<div class="price-box"><div class="price-label">+ Fees</div><div class="price-val">£${hammerFees.toFixed(2)}</div></div>' +
-            '<div class="price-box"><div class="price-label">Total (+Del)</div><div class="price-val highlight">£${total.toFixed(2)}</div></div>' +
+            '<div class="price-box"><div class="price-label">Total Outlay</div><div class="price-val highlight">£${total.toFixed(2)}</div></div>' +
+          '</div>' +
+          '<div class="rec-box">' +
+            '<span class="rec-label">💡 Max Recommended Bid:</span>' +
+            '<span class="rec-val">£${maxRecommendedBid.toFixed(2)}</span>' +
           '</div>' +
         '</div>' +
-        '<a href="${url}" target="_blank" class="btn">View Lot on John Pye &rarr;</a>' +
+        '<div class="actions">' +
+          '<a href="${url}" target="_blank" rel="noopener noreferrer" class="btn btn-pye">View Lot on John Pye &rarr;</a>' +
+          '<div class="btn-group">' +
+            '<a href="${ebayUrl}" target="_blank" rel="noopener noreferrer" class="btn btn-ebay">eBay Sold Comps ↗</a>' +
+            '<a href="${googleUrl}" target="_blank" rel="noopener noreferrer" class="btn btn-google">Google Retail ↗</a>' +
+          '</div>' +
+        '</div>' +
       '</div>`;' +
     '}' +
     'scanCategory("laptop");' +
